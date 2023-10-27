@@ -10,6 +10,7 @@ metadata:
     - openvino
     - computer-vision
     - edge
+    - jupyter
   annotations:
     'backstage.io/kubernetes-label-selector': 'app.kubernetes.io/part-of=blackjack'
 spec:
