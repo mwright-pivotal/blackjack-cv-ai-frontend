@@ -1,0 +1,48 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: python-test-tekton-pipeline
+  labels:
+    apps.tanzu.vmware.com/pipeline: test-python
+spec:
+  params:
+    - name: source-url
+    - name: source-revision
+    - name: source-sub-path
+      default: ""
+  tasks:
+    - name: test
+      params:
+        - name: source-url
+          value: $(params.source-url)
+        - name: source-revision
+          value: $(params.source-revision)
+        - name: source-sub-path
+          value: $(params.source-sub-path)
+      taskSpec:
+        params:
+          - name: source-url
+          - name: source-revision
+          - name: source-sub-path
+        steps:
+          - name: test
+            #image: continuumio/miniconda3
+            #image: openvino/ubuntu22_dev:latesta
+            image: mwrightpivotal/cv-stack-build:1.0
+            script: |-
+              set -ex
+              cd `mktemp -d`
+              wget -qO- $(params.source-url) | tar xvz -m
+              wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+              sh Miniconda3-latest-Linux-x86_64.sh -b -p /home/cnb/miniconda3
+              export PATH=/home/cnb/miniconda3/bin:$PATH
+
+              conda init bash
+              . ~/miniconda3/etc/profile.d/conda.sh
+
+              conda env create -f environment.yml
+              conda activate blackjack
+              python -m pip install --upgrade pip
+              python -m pip install pytest
+
+              pytest
